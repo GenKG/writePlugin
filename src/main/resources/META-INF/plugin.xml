@@ -17,5 +17,12 @@
         <action id="HelloWorldClass" class="HelloWorldClass" text="Hello">
             <keyboard-shortcut keymap="$default" first-keystroke="ctrl BACK_SLASH"/>
         </action>
+        <action id="EditorBasics.EditorIllustrationAction"
+                class="HelloWorldClass"
+                text="Editor Replace Text"
+                description="Replaces selected text with 'Replacement'."
+                icon="SdkIcons.Sdk_default_icon">
+            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+        </action>
     </actions>
 </idea-plugin>
