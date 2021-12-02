@@ -2,10 +2,16 @@ import java.net.*;
 import java.io.*;
 
 public class GLVRD {
-    public String glvrdProofRead(String text, String key) throws Exception {
+    protected String apiKey;
+
+    public GLVRD(String apiKey) {
+        this.apiKey = apiKey;
+    }
+
+    public String glvrdProofRead(String text) throws Exception {
         final URL url = new URL("https://glvrd.ru/api/v3/proofread/");
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestProperty("X-GLVRD-KEY", key);
+        con.setRequestProperty("X-GLVRD-KEY", this.apiKey);
         con.setUseCaches(true);
         con.setDoOutput(true);
         con.setDoInput(true);

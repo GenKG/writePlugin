@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class MySpellChecking extends LocalInspectionTool {
-    private static GLVRD glvrd = new GLVRD();
+    private static final GLVRD glvrd = new GLVRD("KEY");
 
     @Override
     public SuppressQuickFix @NotNull [] getBatchSuppressActions(@Nullable PsiElement element) {
@@ -47,8 +47,8 @@ public final class MySpellChecking extends LocalInspectionTool {
 
                 if (elementText.length() > 5 && elementText.startsWith("//") && elementType.toString().equals("END_OF_LINE_COMMENT")) {
                     try {
-                        String result = glvrd.glvrdProofRead(elementText, "KEY");
-                        TextRange textRange = new TextRange(0, 5); // todo исправить text range от ответа главреда
+                        String result = glvrd.glvrdProofRead(elementText);
+                        TextRange textRange = new TextRange(0, 7); // todo исправить text range: брать из ответа главреда API
 
                         ProblemDescriptorBase problemDescriptor = new ProblemDescriptorBase(element, element, "Коммент не очень. Исправьте: " + result, null, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, false, textRange, true, isOnTheFly);
                         holder.registerProblem(problemDescriptor);
