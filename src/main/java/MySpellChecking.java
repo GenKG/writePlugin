@@ -1,6 +1,8 @@
 import com.intellij.codeInspection.*;
 import com.intellij.lang.*;
 import com.intellij.lang.injection.InjectedLanguageManager;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
@@ -43,15 +45,22 @@ public final class MySpellChecking extends LocalInspectionTool {
                     return;
                 }
 
-                String elementText = element.getText();
+                final String elementText = element.getText();
 
                 if (elementText.length() > 5 && elementText.startsWith("//") && elementType.toString().equals("END_OF_LINE_COMMENT")) {
                     try {
-                        String result = glvrd.glvrdProofRead(elementText);
-                        TextRange textRange = new TextRange(0, 7); // todo исправить text range: брать из ответа главреда API
 
-                        ProblemDescriptorBase problemDescriptor = new ProblemDescriptorBase(element, element, "Коммент не очень. Исправьте: " + result, null, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, false, textRange, true, isOnTheFly);
-                        holder.registerProblem(problemDescriptor);
+                        final var map = glvrd.proofRead(elementText);
+                        for (Fragment glvrdFragment: map.fragments) {
+                            TextRange textRange = new TextRange(glvrdFragment.start, glvrdFragment.end);
+                            String desc = "Коммент не очень. Исправьте: " +  glvrdFragment.hint_id;
+                            ProblemDescriptorBase problemDescriptor = new ProblemDescriptorBase(element, element, desc, null, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, false, textRange, true, isOnTheFly);
+                            holder.registerProblem(problemDescriptor);
+                        }
+
+                        NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
+                            .createNotification("Result code: " + map.score, NotificationType.INFORMATION)
+                            .notify(element.getProject());
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
