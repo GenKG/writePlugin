@@ -2,6 +2,7 @@ import org.apache.http.HttpStatus;
 import java.util.List;
 import java.net.*;
 import java.io.*;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -40,7 +41,7 @@ class GlvrdHints implements GlvrdResponsable {
     }
 
     @JsonProperty("hints")
-    public Object hints;
+    public JsonNode hints;
 }
 
 interface GlvrdResponsable {
@@ -58,7 +59,7 @@ public class GLVRD {
     class RequestBuilder {
         private String url;
 
-        RequestBuilder(String url) {
+        RequestBuilder(final String url) {
             this.url = url;
         }
 
