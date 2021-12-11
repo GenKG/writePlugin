@@ -1,20 +1,29 @@
 import com.intellij.codeInspection.*;
-import com.intellij.lang.*;
-import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.HashMap;
+import java.util.*;
+
+class ProblemInfo {
+    public String descriptionTemplate;
+    public TextRange textRange;
+
+    ProblemInfo(final String descriptionTemplate, final TextRange textRange) {
+        this.descriptionTemplate = descriptionTemplate;
+        this.textRange = textRange;
+    }
+}
 
 public final class MySpellChecking extends LocalInspectionTool {
     private static final GLVRD glvrd = new GLVRD("KEY");
-    private static final HashMap<String, ProblemDescriptorBase> hashMap = new HashMap<String, ProblemDescriptorBase>();
+    private static final HashMap<String, ArrayList<ProblemInfo>> hashMap = new HashMap<String, ArrayList<ProblemInfo>>();
+
+    private static final Set<Integer> psiElementsSet = new HashSet<Integer>();
 
     @Override
     public SuppressQuickFix @NotNull [] getBatchSuppressActions(@Nullable PsiElement element) {
@@ -31,49 +40,41 @@ public final class MySpellChecking extends LocalInspectionTool {
     public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, final boolean isOnTheFly) {
         return new PsiElementVisitor() {
             @Override
-            public void visitElement(@NotNull final PsiElement element) {
-                if (holder.getResultCount() > 1000) {
+            public void visitComment(@NotNull final PsiComment element) {
+                // cancelForSmallText
+                final String elementText = element.getText();
+                final String elementKey = elementText.trim();
+                if (elementKey.length() < 5) {
                     return;
                 }
 
-                final ASTNode node = element.getNode();
-                if (node == null) {
-                    return;
-                }
-
-                // Extract parser definition from element
-                final IElementType elementType = node.getElementType();
-
-                PsiFile containingFile = element.getContainingFile();
-                if (containingFile != null && Boolean.TRUE.equals(containingFile.getUserData(InjectedLanguageManager.FRANKENSTEIN_INJECTION))) {
-                    return;
-                }
-
-                if (elementType.toString().equals("C_STYLE_COMMENT") || elementType.toString().equals("END_OF_LINE_COMMENT")) {
-                    final String elementText = element.getText();
-                    final String elementKey = elementText.trim();
-                    if (elementKey.length() < 5) {
-                        return;
-                    }
-                    if (hashMap.containsKey(elementKey)) {
-                        var problem = hashMap.get(elementKey);
-                        if (problem == null) {
-                            NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
-                                    .createNotification("Объект пуст и взят из кэша", NotificationType.INFORMATION)
-                                    .notify(element.getProject());
-                            return;
-                        }
-                        holder.registerProblem(problem);
+                if (hashMap.containsKey(elementKey)) {
+                    var problems = hashMap.get(elementKey);
+                    if (problems.isEmpty()) {
                         NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
-                                .createNotification("Объект взят из кэша", NotificationType.INFORMATION)
+                                .createNotification("Объект пуст и взят из кэша", NotificationType.INFORMATION)
                                 .notify(element.getProject());
                         return;
                     }
-                    try {
-                        final var map = glvrd.proofRead(elementText);
-                        if (map.fragments.isEmpty()) {
-                            hashMap.put(elementKey, null);
+                    for (var problem : problems) {
+                        if (problem != null) {
+                            ProblemDescriptorBase problemDescriptor = new ProblemDescriptorBase(element, element, problem.descriptionTemplate, LocalQuickFix.EMPTY_ARRAY, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, false, problem.textRange, true, isOnTheFly);
+                            holder.registerProblem(problemDescriptor);
                         }
+                    }
+                    NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
+                            .createNotification("Объект взят из кэша", NotificationType.INFORMATION)
+                            .notify(element.getProject());
+                    return;
+                }
+
+                try {
+                    final var map = glvrd.proofRead(elementText);
+                    ArrayList<ProblemInfo> problems = new ArrayList<ProblemInfo>();
+
+                    if (map.fragments.isEmpty()) {
+                        hashMap.put(elementKey, problems);
+                    } else {
                         for (Fragment glvrdFragment : map.fragments) {
                             TextRange textRange = new TextRange(glvrdFragment.start, glvrdFragment.end);
                             final var hintText = glvrd.hints(glvrdFragment.hint_id);
@@ -83,15 +84,18 @@ public final class MySpellChecking extends LocalInspectionTool {
 
                             ProblemDescriptorBase problemDescriptor = new ProblemDescriptorBase(element, element, desc, LocalQuickFix.EMPTY_ARRAY, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, false, textRange, true, isOnTheFly);
                             holder.registerProblem(problemDescriptor);
-                            hashMap.put(elementKey, problemDescriptor);
-                        }
 
-                        NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
-                                .createNotification("Result code: " + map.score, NotificationType.INFORMATION)
-                                .notify(element.getProject());
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
+                            ProblemInfo problemInfo = new ProblemInfo(problemDescriptor.getDescriptionTemplate(), textRange);
+                            problems.add(problemInfo);
+                        }
+                        hashMap.put(elementKey, problems);
                     }
+
+                    NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
+                            .createNotification("Result code: " + map.score, NotificationType.INFORMATION)
+                            .notify(element.getProject());
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
             }
         };

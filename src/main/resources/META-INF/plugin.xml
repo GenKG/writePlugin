@@ -12,8 +12,10 @@
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup id="Custom Notification Group" displayType="NONE" key="notification.group.name"/>
         <localInspection shortName="MYYYYSpellCheckingInspection" bundle="messages.SpellCheckerBundle"
-                     key="spellchecking.inspection.name" groupKey="proofread" enabledByDefault="true" level="TYPO"
-                     implementationClass="MySpellChecking"/>
+                         key="spellchecking.inspection.name" groupKey="proofread" enabledByDefault="true"
+                         level="TYPO"
+                         runForWholeFile="false"
+                         implementationClass="MySpellChecking"/>
     </extensions>
 
     <actions>
