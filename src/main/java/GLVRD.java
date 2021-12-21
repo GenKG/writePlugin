@@ -1,4 +1,5 @@
 import org.apache.http.HttpStatus;
+import java.util.HashMap;
 import java.util.List;
 import java.net.*;
 import java.io.*;
@@ -50,7 +51,9 @@ interface GlvrdResponsable {
 
 public class GLVRD {
     protected String apiKey;
-    static final String apiHost = "https://glvrd.ru/api";
+    private static final String apiHost = "https://glvrd.ru/api";
+    private static final HashMap<String, GlvrdHints> hashMapHints = new HashMap<>();
+    private static final HashMap<String, GlvrdResponse> hashMapText = new HashMap<>();
 
     public GLVRD(String apiKey) {
         this.apiKey = apiKey;
@@ -88,9 +91,11 @@ public class GLVRD {
             OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
             writer.write(urlParameters);
             writer.close();
-
             final int status = con.getResponseCode();
             switch (status) {
+                // todo если 429 - тогда попробовать снова через несколько секунд
+                // ...
+
                 case HttpStatus.SC_OK:
                 case HttpStatus.SC_CREATED:
                     BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
@@ -103,23 +108,37 @@ public class GLVRD {
 
                     return sb.toString();
             }
-            throw new Exception("Invalid response");
+            throw new Exception("Invalid response " + urlParameters + "; status: " + status);
         }
     }
 
     public GlvrdHints hints(String ids) throws Exception {
+        if (hashMapHints.containsKey(ids)) {
+            return hashMapHints.get(ids);
+        }
+
         RequestBuilder requestBuilder = new RequestBuilder("/v3/hints/");
         final HttpURLConnection con = requestBuilder.createConnection();
         final String string = requestBuilder.request("ids=" + ids, con);
 
-        return requestBuilder.responseParser(string, GlvrdHints.class);
+        var result = requestBuilder.responseParser(string, GlvrdHints.class);
+        hashMapHints.put(ids, result);
+
+        return result;
     }
 
     public GlvrdResponse proofRead(String text) throws Exception {
+        if (hashMapText.containsKey(text)) {
+            return hashMapText.get(text);
+        }
+
         RequestBuilder requestBuilder = new RequestBuilder("/v3/proofread/");
         final HttpURLConnection con = requestBuilder.createConnection();
         String string = requestBuilder.request("text=" + text, con);
 
-        return requestBuilder.responseParser(string, GlvrdResponse.class);
+        var result = requestBuilder.responseParser(string, GlvrdResponse.class);
+        hashMapText.put(text, result);
+
+        return result;
     }
 }
