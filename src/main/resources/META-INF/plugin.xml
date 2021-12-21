@@ -16,6 +16,10 @@
                          level="TYPO"
                          runForWholeFile="false"
                          implementationClass="MySpellChecking"/>
+        <applicationService serviceImplementation="AppSettingsState"/>
+        <applicationConfigurable parentId="tools" instance="AppSettingsConfigurable"
+                                 id="org.intellij.sdk.settings.AppSettingsConfigurable"
+                                 displayName="GLVRD"/>
     </extensions>
 
     <actions>
