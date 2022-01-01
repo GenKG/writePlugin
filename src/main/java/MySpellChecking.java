@@ -2,29 +2,17 @@ import com.intellij.codeInspection.*;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.FileContextUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.intellij.codeInspection.LocalInspectionToolSession;
-import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
 
 import java.util.*;
-
-class ProblemInfo {
-    public String descriptionTemplate;
-    public TextRange textRange;
-
-    ProblemInfo(final String descriptionTemplate, final TextRange textRange) {
-        this.descriptionTemplate = descriptionTemplate;
-        this.textRange = textRange;
-    }
-}
 
 public final class MySpellChecking extends LocalInspectionTool {
     private static final GLVRD glvrd = new GLVRD(AppSettingsState.getInstance().getState().glvrdAPIKey);
@@ -46,7 +34,7 @@ public final class MySpellChecking extends LocalInspectionTool {
     @Override
     @NotNull
     public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, final boolean isOnTheFly, final LocalInspectionToolSession session) {
-        final ProgressIndicator original = ProgressManager.getInstance().getProgressIndicator();
+        final var original = ProgressManager.getInstance().getProgressIndicator();
         if (original != null) {
             if (original.isCanceled()) {
                 return super.buildVisitor(holder, isOnTheFly, session);
@@ -58,52 +46,45 @@ public final class MySpellChecking extends LocalInspectionTool {
             @Override
             public void visitComment(@NotNull final PsiComment psiComment) {
                 // cancelForSmallText
-                final String elementText = psiComment.getText();
-                final String elementKey = elementText.trim();
+                final var elementText = psiComment.getText();
+                final var elementKey = elementText.trim();
                 if (elementKey.length() < 5) {
+                    return;
+                }
+
+                // забираем объекты из кэша
+                if (hashMapCommentText.containsKey(elementKey)) {
+                    final var problems = hashMapCommentText.get(elementKey);
+                    if (problems.isEmpty()) {
+                        return;
+                    }
+                    for (var problem : problems) {
+                        if (problem != null) {
+                            holder.registerProblem(psiComment, problem.textRange, problem.descriptionTemplate, LocalQuickFix.EMPTY_ARRAY);
+                        }
+                    }
+                    return;
+                }
+
+                if (indicator.isRunning()) {
                     return;
                 }
 
                 Task.Backgroundable backgroundable = new Task.Backgroundable(psiComment.getProject(), elementKey) {
                     @Override
                     public void run(@NotNull ProgressIndicator indicator) {
-                        if (hashMapCommentText.containsKey(elementKey)) {
-                            var problems = hashMapCommentText.get(elementKey);
-                            if (problems.isEmpty()) {
-//                                NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
-//                                        .createNotification("Объект пуст и взят из кэша", NotificationType.INFORMATION)
-//                                        .notify(psiComment.getProject());
-                                return;
-                            }
-                            for (var problem : problems) {
-                                if (problem != null) {
-                                    ProblemDescriptorBase problemDescriptor = new ProblemDescriptorBase(psiComment, psiComment, problem.descriptionTemplate, LocalQuickFix.EMPTY_ARRAY, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, false, problem.textRange, false, isOnTheFly);
-                                    holder.registerProblem(problemDescriptor);
-                                }
-                            }
-//                            NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
-//                                    .createNotification("Объект взят из кэша", NotificationType.INFORMATION)
-//                                    .notify(psiComment.getProject());
-                            return;
-                        }
-
                         GlvrdResponse map = null;
+                        final var problems = new ArrayList<ProblemInfo>();
                         try {
                             map = glvrd.proofRead(elementText);
-
-                            ArrayList<ProblemInfo> problems = new ArrayList<ProblemInfo>();
                             if (!map.fragments.isEmpty()) {
                                 for (Fragment glvrdFragment : map.fragments) {
-                                    TextRange textRange = new TextRange(glvrdFragment.start, glvrdFragment.end);
-
+                                    final var textRange = new TextRange(glvrdFragment.start, glvrdFragment.end);
                                     final var hintText = glvrd.hints(glvrdFragment.hint_id);
                                     final var hintData = hintText.hints.get(glvrdFragment.hint_id);
-                                    String desc = String.format("GLVRD: %s", hintData.get("name").asText());
+                                    final var desc = String.format("GLVRD: %s", hintData.get("name").asText());
 
-                                    ProblemDescriptorBase problemDescriptor = new ProblemDescriptorBase(psiComment, psiComment, desc, LocalQuickFix.EMPTY_ARRAY, ProblemHighlightType.GENERIC_ERROR_OR_WARNING, false, textRange, false, isOnTheFly);
-                                    holder.registerProblem(problemDescriptor);
-
-                                    ProblemInfo problemInfo = new ProblemInfo(problemDescriptor.getDescriptionTemplate(), textRange);
+                                    ProblemInfo problemInfo = new ProblemInfo(desc, textRange);
                                     problems.add(problemInfo);
                                 }
                             }
@@ -117,14 +98,22 @@ public final class MySpellChecking extends LocalInspectionTool {
 
                         GlvrdResponse finalMap = map;
                         Runnable onEnd = () -> {
+                            for (var problem : problems) {
+                                // todo почему-то не происходит обновления, требуя переход на новую строку
+                                holder.registerProblem(psiComment, problem.textRange, problem.descriptionTemplate, LocalQuickFix.EMPTY_ARRAY);
+                            }
                             if (finalMap != null) {
                                 NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
                                         .createNotification("Result code: " + elementKey + " " + finalMap.score, NotificationType.INFORMATION)
                                         .notify(psiComment.getProject());
                             }
+                            if (indicator.isRunning()) {
+                                indicator.stop();
+                                indicator.notify();
+                            }
                         };
 
-                        ApplicationManager.getApplication().invokeLater(onEnd);
+                        ApplicationManager.getApplication().invokeLater(onEnd, ModalityState.NON_MODAL);
                     }
                 };
 

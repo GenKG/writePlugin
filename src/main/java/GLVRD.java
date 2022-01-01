@@ -1,8 +1,9 @@
-import org.apache.http.HttpStatus;
 import java.util.HashMap;
 import java.util.List;
 import java.net.*;
 import java.io.*;
+
+import org.apache.http.HttpStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -76,8 +77,8 @@ public class GLVRD {
         }
 
         public HttpURLConnection createConnection() throws Exception {
-            final URL url = new URL(apiHost + this.url);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            final var url = new URL(apiHost + this.url);
+            final var con = (HttpURLConnection) url.openConnection();
             con.setRequestProperty("X-GLVRD-KEY", apiKey);
             con.setUseCaches(true);
             con.setDoOutput(true);
@@ -88,18 +89,20 @@ public class GLVRD {
         }
 
         public String request(String urlParameters, HttpURLConnection con) throws Exception {
-            OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
+            final var writer = new OutputStreamWriter(con.getOutputStream());
             writer.write(urlParameters);
             writer.close();
+
             final int status = con.getResponseCode();
             switch (status) {
-                // todo если 429 - тогда попробовать снова через несколько секунд
-                // ...
+                case 429:
+                    // todo надо слать повторный запрос спустя определенное время
+                    break;
 
                 case HttpStatus.SC_OK:
                 case HttpStatus.SC_CREATED:
-                    BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                    StringBuilder sb = new StringBuilder();
+                    var br = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                    var sb = new StringBuilder();
                     String line;
                     while ((line = br.readLine()) != null) {
                         sb.append(line).append("\n");
@@ -117,11 +120,10 @@ public class GLVRD {
             return hashMapHints.get(ids);
         }
 
-        RequestBuilder requestBuilder = new RequestBuilder("/v3/hints/");
-        final HttpURLConnection con = requestBuilder.createConnection();
-        final String string = requestBuilder.request("ids=" + ids, con);
-
-        var result = requestBuilder.responseParser(string, GlvrdHints.class);
+        final var requestBuilder = new RequestBuilder("/v3/hints/");
+        final var con = requestBuilder.createConnection();
+        final var string = requestBuilder.request("ids=" + ids, con);
+        final var result = requestBuilder.responseParser(string, GlvrdHints.class);
         hashMapHints.put(ids, result);
 
         return result;
@@ -133,10 +135,10 @@ public class GLVRD {
         }
 
         RequestBuilder requestBuilder = new RequestBuilder("/v3/proofread/");
-        final HttpURLConnection con = requestBuilder.createConnection();
+        final var con = requestBuilder.createConnection();
         String string = requestBuilder.request("text=" + text, con);
 
-        var result = requestBuilder.responseParser(string, GlvrdResponse.class);
+        final var result = requestBuilder.responseParser(string, GlvrdResponse.class);
         hashMapText.put(text, result);
 
         return result;
