@@ -3,8 +3,12 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.intellij.util.xmlb.annotations.OptionTag;;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Supports storing the application settings in a persistent way.
@@ -17,6 +21,9 @@ import org.jetbrains.annotations.Nullable;
 )
 public class AppSettingsState implements PersistentStateComponent<AppSettingsState> {
     public String glvrdAPIKey = "";
+
+    @OptionTag(converter = ProblemInfoConverter.class)
+    public Map<String, ArrayList<ProblemInfo>> hashMapCommentText;
 
     public static AppSettingsState getInstance() {
         return ApplicationManager.getApplication().getService(AppSettingsState.class);
@@ -32,5 +39,4 @@ public class AppSettingsState implements PersistentStateComponent<AppSettingsSta
     public void loadState(@NotNull AppSettingsState state) {
         XmlSerializerUtil.copyBean(state, this);
     }
-
 }

@@ -33,20 +33,20 @@ public class AppSettingsConfigurable implements Configurable {
 
     @Override
     public boolean isModified() {
-        AppSettingsState settings = AppSettingsState.getInstance();
+        var settings = AppSettingsState.getInstance();
         boolean modified = !mySettingsComponent.getUserNameText().equals(settings.glvrdAPIKey);
         return modified;
     }
 
     @Override
     public void apply() {
-        AppSettingsState settings = AppSettingsState.getInstance();
+        var settings = AppSettingsState.getInstance();
         settings.glvrdAPIKey = mySettingsComponent.getUserNameText();
     }
 
     @Override
     public void reset() {
-        AppSettingsState settings = AppSettingsState.getInstance();
+        var settings = AppSettingsState.getInstance();
         mySettingsComponent.setUserNameText(settings.glvrdAPIKey);
     }
 

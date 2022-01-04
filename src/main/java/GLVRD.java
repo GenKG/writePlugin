@@ -1,8 +1,10 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
-import java.net.*;
-import java.io.*;
-
 import org.apache.http.HttpStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -11,6 +13,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class GlvrdResponse implements GlvrdResponsable {
     @JsonProperty("status")
     public String status;
+
+    @JsonProperty("code")
+    public String code;
+
+    @JsonProperty("message")
+    public String message;
 
     public String getStatus() {
         return this.status;
@@ -134,10 +142,9 @@ public class GLVRD {
             return hashMapText.get(text);
         }
 
-        RequestBuilder requestBuilder = new RequestBuilder("/v3/proofread/");
+        final var requestBuilder = new RequestBuilder("/v3/proofread/");
         final var con = requestBuilder.createConnection();
-        String string = requestBuilder.request("text=" + text, con);
-
+        final var string = requestBuilder.request("text=" + text, con);
         final var result = requestBuilder.responseParser(string, GlvrdResponse.class);
         hashMapText.put(text, result);
 

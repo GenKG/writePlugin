@@ -6,17 +6,28 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
+import com.intellij.codeInspection.LocalInspectionToolSession;
+import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.impl.source.resolve.FileContextUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import com.intellij.codeInspection.LocalInspectionToolSession;
-import com.intellij.codeInspection.ProblemsHolder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class MySpellChecking extends LocalInspectionTool {
-    private static final GLVRD glvrd = new GLVRD(AppSettingsState.getInstance().getState().glvrdAPIKey);
-    private static final HashMap<String, ArrayList<ProblemInfo>> hashMapCommentText = new HashMap<String, ArrayList<ProblemInfo>>();
+    private static GLVRD glvrd;
+    private static Map<String, ArrayList<ProblemInfo>> hashMapCommentText;
+
+    MySpellChecking() {
+        AppSettingsState state = AppSettingsState.getInstance();
+        if (state.hashMapCommentText == null) {
+            state.hashMapCommentText = new HashMap<String, ArrayList<ProblemInfo>>();
+        }
+        hashMapCommentText = state.hashMapCommentText;
+        glvrd = new GLVRD(state.glvrdAPIKey);
+    }
 
     @Override
     public SuppressQuickFix @NotNull [] getBatchSuppressActions(@Nullable PsiElement element) {
@@ -60,7 +71,9 @@ public final class MySpellChecking extends LocalInspectionTool {
                     }
                     for (var problem : problems) {
                         if (problem != null) {
-                            holder.registerProblem(psiComment, problem.textRange, problem.descriptionTemplate, LocalQuickFix.EMPTY_ARRAY);
+                            TextRange textRange = new TextRange(problem.fragmentStart, problem.fragmentEnd);
+                            String descriptionTemplate = problem.descriptionTemplate;
+                            holder.registerProblem(psiComment, textRange, descriptionTemplate, LocalQuickFix.EMPTY_ARRAY);
                         }
                     }
                     return;
@@ -79,12 +92,10 @@ public final class MySpellChecking extends LocalInspectionTool {
                             map = glvrd.proofRead(elementText);
                             if (!map.fragments.isEmpty()) {
                                 for (Fragment glvrdFragment : map.fragments) {
-                                    final var textRange = new TextRange(glvrdFragment.start, glvrdFragment.end);
                                     final var hintText = glvrd.hints(glvrdFragment.hint_id);
                                     final var hintData = hintText.hints.get(glvrdFragment.hint_id);
                                     final var desc = String.format("GLVRD: %s", hintData.get("name").asText());
-
-                                    ProblemInfo problemInfo = new ProblemInfo(desc, textRange);
+                                    final var problemInfo = new ProblemInfo(desc, glvrdFragment.start, glvrdFragment.end);
                                     problems.add(problemInfo);
                                 }
                             }
@@ -99,8 +110,9 @@ public final class MySpellChecking extends LocalInspectionTool {
                         GlvrdResponse finalMap = map;
                         Runnable onEnd = () -> {
                             for (var problem : problems) {
+                                final var textRange = new TextRange(problem.fragmentStart, problem.fragmentEnd);
                                 // todo почему-то не происходит обновления, требуя переход на новую строку
-                                holder.registerProblem(psiComment, problem.textRange, problem.descriptionTemplate, LocalQuickFix.EMPTY_ARRAY);
+                                holder.registerProblem(psiComment, textRange, problem.descriptionTemplate, LocalQuickFix.EMPTY_ARRAY);
                             }
                             if (finalMap != null) {
                                 NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
