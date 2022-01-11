@@ -3,8 +3,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
+
 import org.apache.http.HttpStatus;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -130,7 +133,7 @@ public class GLVRD {
 
         final var requestBuilder = new RequestBuilder("/v3/hints/");
         final var con = requestBuilder.createConnection();
-        final var string = requestBuilder.request("ids=" + ids, con);
+        final var string = requestBuilder.request("ids=" + URLEncoder.encode(ids, StandardCharsets.UTF_8), con);
         final var result = requestBuilder.responseParser(string, GlvrdHints.class);
         hashMapHints.put(ids, result);
 
@@ -144,7 +147,7 @@ public class GLVRD {
 
         final var requestBuilder = new RequestBuilder("/v3/proofread/");
         final var con = requestBuilder.createConnection();
-        final var string = requestBuilder.request("text=" + text, con);
+        final var string = requestBuilder.request("text=" + URLEncoder.encode(text, StandardCharsets.UTF_8), con);
         final var result = requestBuilder.responseParser(string, GlvrdResponse.class);
         hashMapText.put(text, result);
 

@@ -1,3 +1,7 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.intellij.codeInspection.*;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
@@ -11,10 +15,6 @@ import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.impl.source.resolve.FileContextUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public final class MySpellChecking extends LocalInspectionTool {
     private static GLVRD glvrd;
