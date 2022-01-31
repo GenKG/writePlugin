@@ -13,6 +13,31 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+class GlvrdStatus implements GlvrdResponsable {
+    @JsonProperty("status")
+    public String status;
+
+    @JsonProperty("code")
+    public String code;
+
+    @JsonProperty("message")
+    public String message;
+
+    @JsonProperty("max_text_length")
+    public int max_text_length;
+
+    @JsonProperty("max_hints_count")
+    public int max_hints_count;
+
+    @JsonProperty("period_underlimit")
+    public boolean period_underlimit;
+
+    @JsonProperty("frequency_underlimit")
+    public boolean frequency_underlimit;
+
+    public String getStatus() { return this.status; }
+}
+
 class GlvrdResponse implements GlvrdResponsable {
     @JsonProperty("status")
     public String status;
@@ -87,7 +112,7 @@ public class GLVRD {
             return map;
         }
 
-        public HttpURLConnection createConnection() throws Exception {
+        public HttpURLConnection createConnectionPost() throws Exception {
             final var url = new URL(apiHost + this.url);
             final var con = (HttpURLConnection) url.openConnection();
             con.setRequestProperty("X-GLVRD-KEY", apiKey);
@@ -99,10 +124,22 @@ public class GLVRD {
             return con;
         }
 
+        public HttpURLConnection createConnectionGet() throws Exception {
+            final var url = new URL(apiHost + this.url);
+            final var con = (HttpURLConnection) url.openConnection();
+            con.setRequestProperty("X-GLVRD-KEY", apiKey);
+            con.setUseCaches(true);
+            con.setRequestMethod("GET");
+
+            return con;
+        }
+
         public String request(String urlParameters, HttpURLConnection con) throws Exception {
-            final var writer = new OutputStreamWriter(con.getOutputStream());
-            writer.write(urlParameters);
-            writer.close();
+            if (con.getDoOutput()) {
+                final var writer = new OutputStreamWriter(con.getOutputStream());
+                writer.write(urlParameters);
+                writer.close();
+            }
 
             final int status = con.getResponseCode();
             switch (status) {
@@ -132,7 +169,7 @@ public class GLVRD {
         }
 
         final var requestBuilder = new RequestBuilder("/v3/hints/");
-        final var con = requestBuilder.createConnection();
+        final var con = requestBuilder.createConnectionPost();
         final var string = requestBuilder.request("ids=" + URLEncoder.encode(ids, StandardCharsets.UTF_8), con);
         final var result = requestBuilder.responseParser(string, GlvrdHints.class);
         hashMapHints.put(ids, result);
@@ -146,10 +183,19 @@ public class GLVRD {
         }
 
         final var requestBuilder = new RequestBuilder("/v3/proofread/");
-        final var con = requestBuilder.createConnection();
+        final var con = requestBuilder.createConnectionPost();
         final var string = requestBuilder.request("text=" + URLEncoder.encode(text, StandardCharsets.UTF_8), con);
         final var result = requestBuilder.responseParser(string, GlvrdResponse.class);
         hashMapText.put(text, result);
+
+        return result;
+    }
+
+    public GlvrdStatus status() throws Exception {
+        final var requestBuilder = new RequestBuilder("/v3/status");
+        final var con = requestBuilder.createConnectionGet();
+        final var string = requestBuilder.request("", con);
+        final var result = requestBuilder.responseParser(string, GlvrdStatus.class);
 
         return result;
     }

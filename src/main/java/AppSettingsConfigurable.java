@@ -41,8 +41,19 @@ public class AppSettingsConfigurable implements Configurable {
     @Override
     public void apply() {
         final var settings = AppSettingsState.getInstance();
-        settings.glvrdAPIKey = mySettingsComponent.getUserNameText();
-        new SampleDialogWrapper().show();
+        final var apiKey = mySettingsComponent.getUserNameText();
+        GLVRD glvrd = new GLVRD(apiKey);
+        try {
+            var glvrdStatus = glvrd.status();
+            if (glvrdStatus.period_underlimit) {
+                new SampleDialogWrapper("Аккаунт активен. Применение настроек будет после перезагрузки IDE").show();
+            } else {
+                new SampleDialogWrapper("Исчерпан лимит запросов. Применение настроек будет после перезагрузки IDE").show();
+            }
+            settings.glvrdAPIKey = apiKey;
+        } catch (Exception e) {
+            new SampleDialogWrapper(e.getMessage()).show();
+        }
     }
 
     @Override
