@@ -89,7 +89,7 @@ public final class MySpellChecking extends LocalInspectionTool {
                         GlvrdResponse map = null;
                         final var problems = new ArrayList<ProblemInfo>();
                         try {
-                            map = glvrd.proofRead(elementText);
+                            map = glvrd.proofread(elementText);
                             if (!map.fragments.isEmpty()) {
                                 for (Fragment glvrdFragment : map.fragments) {
                                     final var hintText = glvrd.hints(glvrdFragment.hint_id);
@@ -101,7 +101,7 @@ public final class MySpellChecking extends LocalInspectionTool {
                             }
                             hashMapCommentText.put(elementKey, problems);
                         } catch (Exception e) {
-//                            e.printStackTrace();
+                            e.printStackTrace();
                             NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
                                     .createNotification(e.toString(), NotificationType.INFORMATION)
                                     .notify(psiComment.getProject());

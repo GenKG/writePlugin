@@ -20,6 +20,9 @@ class GlvrdStatus implements GlvrdResponsable {
     @JsonProperty("code")
     public String code;
 
+    @JsonProperty("name")
+    public String name;
+
     @JsonProperty("message")
     public String message;
 
@@ -36,6 +39,8 @@ class GlvrdStatus implements GlvrdResponsable {
     public boolean frequency_underlimit;
 
     public String getStatus() { return this.status; }
+
+    public String getMessage() { return this.message; }
 }
 
 class GlvrdResponse implements GlvrdResponsable {
@@ -45,18 +50,21 @@ class GlvrdResponse implements GlvrdResponsable {
     @JsonProperty("code")
     public String code;
 
+    @JsonProperty("name")
+    public String name;
+
     @JsonProperty("message")
     public String message;
-
-    public String getStatus() {
-        return this.status;
-    }
 
     @JsonProperty("score")
     public String score;
 
     @JsonProperty("fragments")
     public List<Fragment> fragments;
+
+    public String getStatus() { return this.status; }
+
+    public String getMessage() { return this.message; }
 }
 
 class Fragment {
@@ -74,16 +82,21 @@ class GlvrdHints implements GlvrdResponsable {
     @JsonProperty("status")
     public String status;
 
-    public String getStatus() {
-        return this.status;
-    }
+    @JsonProperty("message")
+    public String message;
 
     @JsonProperty("hints")
     public JsonNode hints;
+
+    public String getStatus() { return this.status; }
+
+    public String getMessage() { return this.message; }
 }
 
 interface GlvrdResponsable {
     String getStatus();
+
+    String getMessage();
 }
 
 public class GLVRD {
@@ -107,7 +120,7 @@ public class GLVRD {
             final ObjectMapper mapper = new ObjectMapper();
             T map = mapper.readValue(response, tClass);
             if (!map.getStatus().equals("ok")) {
-                throw new Exception(map.getStatus());
+                throw new Exception(map.getMessage());
             }
             return map;
         }
@@ -117,8 +130,8 @@ public class GLVRD {
             final var con = (HttpURLConnection) url.openConnection();
             con.setRequestProperty("X-GLVRD-KEY", apiKey);
             con.setUseCaches(true);
-            con.setDoOutput(true);
-            con.setDoInput(true);
+//            con.setDoOutput(true);
+//            con.setDoInput(true);
             con.setRequestMethod("POST");
 
             return con;
@@ -159,7 +172,7 @@ public class GLVRD {
 
                     return sb.toString();
             }
-            throw new Exception("Invalid response " + urlParameters + "; status: " + status);
+            throw new Exception(con.getResponseCode() + " " + con.getResponseMessage());
         }
     }
 
@@ -177,7 +190,7 @@ public class GLVRD {
         return result;
     }
 
-    public GlvrdResponse proofRead(String text) throws Exception {
+    public GlvrdResponse proofread(String text) throws Exception {
         if (hashMapText.containsKey(text)) {
             return hashMapText.get(text);
         }
