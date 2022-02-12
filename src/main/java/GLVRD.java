@@ -130,8 +130,8 @@ public class GLVRD {
             final var con = (HttpURLConnection) url.openConnection();
             con.setRequestProperty("X-GLVRD-KEY", apiKey);
             con.setUseCaches(true);
-//            con.setDoOutput(true);
-//            con.setDoInput(true);
+            con.setDoOutput(true);
+            con.setDoInput(true);
             con.setRequestMethod("POST");
 
             return con;
