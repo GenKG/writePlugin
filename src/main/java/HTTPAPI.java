@@ -38,12 +38,16 @@ class GlvrdStatus implements GlvrdResponsable {
     @JsonProperty("frequency_underlimit")
     public boolean frequency_underlimit;
 
-    public String getStatus() { return this.status; }
+    public String getStatus() {
+        return this.status;
+    }
 
-    public String getMessage() { return this.message; }
+    public String getMessage() {
+        return this.message;
+    }
 }
 
-class GlvrdResponse implements GlvrdResponsable {
+class GlvrdHTTPResponse implements GlvrdResponsable {
     @JsonProperty("status")
     public String status;
 
@@ -62,9 +66,13 @@ class GlvrdResponse implements GlvrdResponsable {
     @JsonProperty("fragments")
     public List<Fragment> fragments;
 
-    public String getStatus() { return this.status; }
+    public String getStatus() {
+        return this.status;
+    }
 
-    public String getMessage() { return this.message; }
+    public String getMessage() {
+        return this.message;
+    }
 }
 
 class Fragment {
@@ -88,9 +96,15 @@ class GlvrdHints implements GlvrdResponsable {
     @JsonProperty("hints")
     public JsonNode hints;
 
-    public String getStatus() { return this.status; }
+    @Override
+    public String getStatus() {
+        return this.status;
+    }
 
-    public String getMessage() { return this.message; }
+    @Override
+    public String getMessage() {
+        return this.message;
+    }
 }
 
 interface GlvrdResponsable {
@@ -99,13 +113,12 @@ interface GlvrdResponsable {
     String getMessage();
 }
 
-public class GLVRD {
+public class HTTPAPI extends GLVRD_API {
     protected String apiKey;
-    private static final String apiHost = "https://glvrd.ru/api";
-    private static final HashMap<String, GlvrdHints> hashMapHints = new HashMap<>();
-    private static final HashMap<String, GlvrdResponse> hashMapText = new HashMap<>();
+    protected static final HashMap<String, GlvrdHints> hashMapHints = new HashMap<>();
+    protected static final HashMap<String, GlvrdHTTPResponse> hashMapText = new HashMap<>();
 
-    public GLVRD(String apiKey) {
+    public HTTPAPI(String apiKey) {
         this.apiKey = apiKey;
     }
 
@@ -154,8 +167,7 @@ public class GLVRD {
                 writer.close();
             }
 
-            final int status = con.getResponseCode();
-            switch (status) {
+            switch (con.getResponseCode()) {
                 case 429:
                     // todo надо слать повторный запрос спустя определенное время
                     break;
@@ -190,7 +202,7 @@ public class GLVRD {
         return result;
     }
 
-    public GlvrdResponse proofread(String text) throws Exception {
+    public GlvrdHTTPResponse proofread(String text) throws Exception {
         if (hashMapText.containsKey(text)) {
             return hashMapText.get(text);
         }
@@ -198,7 +210,7 @@ public class GLVRD {
         final var requestBuilder = new RequestBuilder("/v3/proofread/");
         final var con = requestBuilder.createConnectionPost();
         final var string = requestBuilder.request("text=" + URLEncoder.encode(text, StandardCharsets.UTF_8), con);
-        final var result = requestBuilder.responseParser(string, GlvrdResponse.class);
+        final var result = requestBuilder.responseParser(string, GlvrdHTTPResponse.class);
         hashMapText.put(text, result);
 
         return result;

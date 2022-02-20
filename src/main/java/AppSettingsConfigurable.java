@@ -34,17 +34,26 @@ public class AppSettingsConfigurable implements Configurable {
     @Override
     public boolean isModified() {
         final var settings = AppSettingsState.getInstance();
-        final var modified = !mySettingsComponent.getUserNameText().equals(settings.glvrdAPIKey);
+        final var modified = !mySettingsComponent.getUserNameText().equals(settings.glvrdAPIKey) ||
+                !mySettingsComponent.getDemoSelected().equals(settings.isDemo);
+
         return modified;
     }
 
     @Override
     public void apply() {
         final var settings = AppSettingsState.getInstance();
+
+        settings.isDemo = mySettingsComponent.getDemoSelected();
+
+        if (mySettingsComponent.getDemoSelected()) {
+            return;
+        }
+
         final var apiKey = mySettingsComponent.getUserNameText();
-        GLVRD glvrd = new GLVRD(apiKey);
+        HTTPAPI httpapi = new HTTPAPI(apiKey);
         try {
-            var glvrdStatus = glvrd.status();
+            var glvrdStatus = httpapi.status();
             if (glvrdStatus.period_underlimit) {
                 new SampleDialogWrapper("Аккаунт активен. Применение настроек будет после перезагрузки IDE").show();
             } else {
@@ -60,6 +69,7 @@ public class AppSettingsConfigurable implements Configurable {
     public void reset() {
         final var settings = AppSettingsState.getInstance();
         mySettingsComponent.setUserNameText(settings.glvrdAPIKey);
+        mySettingsComponent.setDemoCheckbox(settings.isDemo);
     }
 
     @Override

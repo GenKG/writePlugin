@@ -17,7 +17,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class MySpellChecking extends LocalInspectionTool {
-    private static GLVRD glvrd;
+    private static boolean isDemo;
+    private static JSAPI jsapi;
+    private static HTTPAPI httpapi;
     private static Map<String, ArrayList<ProblemInfo>> hashMapCommentText;
 
     MySpellChecking() {
@@ -26,7 +28,13 @@ public final class MySpellChecking extends LocalInspectionTool {
             state.hashMapCommentText = new HashMap<String, ArrayList<ProblemInfo>>();
         }
         hashMapCommentText = state.hashMapCommentText;
-        glvrd = new GLVRD(state.glvrdAPIKey);
+        if (state.isDemo) {
+            jsapi = new JSAPI();
+            isDemo = true;
+        } else {
+            httpapi = new HTTPAPI(state.glvrdAPIKey);
+            isDemo = false;
+        }
     }
 
     @Override
@@ -54,11 +62,64 @@ public final class MySpellChecking extends LocalInspectionTool {
         final var indicator = new EmptyProgressIndicator();
 
         return new PsiElementVisitor() {
-            @Override
-            public void visitComment(@NotNull final PsiComment psiComment) {
-                // cancelForSmallText
+            private ArrayList<ProblemInfo> httpCheck(PsiComment psiComment) throws Exception {
                 final var elementText = psiComment.getText();
                 final var elementKey = elementText.trim();
+                final var problems = new ArrayList<ProblemInfo>();
+                var map = httpapi.proofread(elementText);
+
+                if (map != null) {
+                    NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
+                            .createNotification("Result code: " + elementKey + " " + map.score, NotificationType.INFORMATION)
+                            .notify(psiComment.getProject());
+                }
+
+                if (map != null && !map.fragments.isEmpty()) {
+                    for (Fragment glvrdFragment : map.fragments) {
+                        final var hintText = httpapi.hints(glvrdFragment.hint_id);
+                        final var hintData = hintText.hints.get(glvrdFragment.hint_id);
+                        final var desc = String.format("GLVRD: %s", hintData.get("name").asText());
+                        final var problemInfo = new ProblemInfo(desc, glvrdFragment.start, glvrdFragment.end);
+                        problems.add(problemInfo);
+                    }
+                }
+                hashMapCommentText.put(elementKey, problems);
+
+                return problems;
+            }
+
+            private ArrayList<ProblemInfo> jsCheck(PsiComment psiComment) throws Exception {
+                final var elementText = psiComment.getText();
+                final var elementKey = elementText.trim();
+                final var problems = new ArrayList<ProblemInfo>();
+                var map = jsapi.proofread(elementText);
+
+                if (map != null) {
+                    NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
+                            .createNotification("Result code: " + elementKey + " " + map.score, NotificationType.INFORMATION)
+                            .notify(psiComment.getProject());
+
+                    if (!map.fragments.isEmpty()) {
+                        for (var fragment : map.fragments) {
+                            for (var innerFragment : fragment) {
+                                final var hintData = map.hints.get(innerFragment.hint);
+                                final var desc = String.format("GLVRD: %s. %s", hintData.get("name").asText(), hintData.get("short_description").asText());
+                                final var problemInfo = new ProblemInfo(desc, innerFragment.start, innerFragment.end);
+                                problems.add(problemInfo);
+                            }
+                        }
+                    }
+                }
+                hashMapCommentText.put(elementKey, problems);
+
+                return problems;
+            }
+
+            @Override
+            public void visitComment(@NotNull final PsiComment psiComment) {
+                final var elementText = psiComment.getText();
+                final var elementKey = elementText.trim();
+                // cancel For SmallText
                 if (elementKey.length() < 5) {
                     return;
                 }
@@ -83,49 +144,34 @@ public final class MySpellChecking extends LocalInspectionTool {
                     return;
                 }
 
+                var self = this;
+
                 Task.Backgroundable backgroundable = new Task.Backgroundable(psiComment.getProject(), elementKey) {
                     @Override
                     public void run(@NotNull ProgressIndicator indicator) {
-                        GlvrdResponse map = null;
-                        final var problems = new ArrayList<ProblemInfo>();
                         try {
-                            map = glvrd.proofread(elementText);
-                            if (!map.fragments.isEmpty()) {
-                                for (Fragment glvrdFragment : map.fragments) {
-                                    final var hintText = glvrd.hints(glvrdFragment.hint_id);
-                                    final var hintData = hintText.hints.get(glvrdFragment.hint_id);
-                                    final var desc = String.format("GLVRD: %s", hintData.get("name").asText());
-                                    final var problemInfo = new ProblemInfo(desc, glvrdFragment.start, glvrdFragment.end);
-                                    problems.add(problemInfo);
+                            var problems = isDemo ? self.jsCheck(psiComment) : self.httpCheck(psiComment);
+
+                            Runnable onEnd = () -> {
+                                for (var problem : problems) {
+                                    final var textRange = new TextRange(problem.fragmentStart, problem.fragmentEnd);
+
+                                    // todo почему-то не происходит обновления, требуя переход на новую строку
+                                    holder.registerProblem(psiComment, textRange, problem.descriptionTemplate, LocalQuickFix.EMPTY_ARRAY);
                                 }
-                            }
-                            hashMapCommentText.put(elementKey, problems);
+                                if (indicator.isRunning()) {
+                                    indicator.stop();
+                                    indicator.notify();
+                                }
+                            };
+
+                            ApplicationManager.getApplication().invokeLater(onEnd, ModalityState.NON_MODAL);
                         } catch (Exception e) {
                             e.printStackTrace();
                             NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
                                     .createNotification(e.toString(), NotificationType.INFORMATION)
                                     .notify(psiComment.getProject());
                         }
-
-                        GlvrdResponse finalMap = map;
-                        Runnable onEnd = () -> {
-                            for (var problem : problems) {
-                                final var textRange = new TextRange(problem.fragmentStart, problem.fragmentEnd);
-                                // todo почему-то не происходит обновления, требуя переход на новую строку
-                                holder.registerProblem(psiComment, textRange, problem.descriptionTemplate, LocalQuickFix.EMPTY_ARRAY);
-                            }
-                            if (finalMap != null) {
-                                NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
-                                        .createNotification("Result code: " + elementKey + " " + finalMap.score, NotificationType.INFORMATION)
-                                        .notify(psiComment.getProject());
-                            }
-                            if (indicator.isRunning()) {
-                                indicator.stop();
-                                indicator.notify();
-                            }
-                        };
-
-                        ApplicationManager.getApplication().invokeLater(onEnd, ModalityState.NON_MODAL);
                     }
                 };
 

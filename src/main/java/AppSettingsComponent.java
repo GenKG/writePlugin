@@ -13,9 +13,11 @@ public class AppSettingsComponent {
     private final JPanel myMainPanel;
     private final JBTextField glvrdKeyText = new JBTextField();
     private final JButton glvrdAPILink = new BrowserLink("glvrd.ru", "https://glvrd.ru/api/");
+    private final JCheckBox demoCheckbox = new JCheckBox();
 
     public AppSettingsComponent() {
         myMainPanel = FormBuilder.createFormBuilder()
+                .addLabeledComponent(new JBLabel("Демо режим"), demoCheckbox)
                 .addLabeledComponent(new JBLabel("Ключ для запросов: "), glvrdKeyText, 1, false)
                 .addLabeledComponent(new JBLabel("Powered by"), glvrdAPILink, 2, false)
                 .addComponentFillVertically(new JPanel(), 0)
@@ -28,6 +30,14 @@ public class AppSettingsComponent {
 
     public JComponent getPreferredFocusedComponent() {
         return glvrdKeyText;
+    }
+
+    public void setDemoCheckbox(@NotNull boolean value) {
+        demoCheckbox.setSelected(value);
+    }
+
+    public Boolean getDemoSelected() {
+        return demoCheckbox.isSelected();
     }
 
     @NotNull

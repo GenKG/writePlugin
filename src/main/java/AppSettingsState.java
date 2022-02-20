@@ -22,6 +22,8 @@ import java.util.Map;
 public class AppSettingsState implements PersistentStateComponent<AppSettingsState> {
     public String glvrdAPIKey = "";
 
+    public Boolean isDemo = false;
+
     @OptionTag(converter = ProblemInfoConverter.class)
     public Map<String, ArrayList<ProblemInfo>> hashMapCommentText;
 
