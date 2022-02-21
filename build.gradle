@@ -3,7 +3,7 @@ plugins {
     id 'java'
 }
 
-group 'com.writePlugin'
+group 'ru.baskovsky.commentlint'
 version '1.0'
 
 repositories {

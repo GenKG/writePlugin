@@ -16,7 +16,7 @@ public class AppSettingsConfigurable implements Configurable {
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
     public String getDisplayName() {
-        return "GLVRD";
+        return "Comment Lint";
     }
 
     @Override

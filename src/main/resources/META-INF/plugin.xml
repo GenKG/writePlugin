@@ -1,7 +1,7 @@
 <idea-plugin>
-    <id>com.writePlugin.writePlugin</id>
-    <name>WritePlugin</name>
-    <vendor email="safon0306@gmail.com" url="https://github.com/GenKG/writePlugin">WritePlugin</vendor>
+    <id>ru.baskovsky.commentlint</id>
+    <name>Comment Lint</name>
+    <vendor email="safon0306@gmail.com" url="https://github.com/GenKG/writePlugin">Comment Lint</vendor>
 
     <description>Плагин позволяет анализировать лексически текст и предлагать варианты его улучшения</description>
 
@@ -19,7 +19,7 @@
         <applicationService serviceImplementation="AppSettingsState"/>
         <applicationConfigurable parentId="tools" instance="AppSettingsConfigurable"
                                  id="org.intellij.sdk.settings.AppSettingsConfigurable"
-                                 displayName="GLVRD"/>
+                                 displayName="Comment Lint"/>
     </extensions>
 
     <actions>
