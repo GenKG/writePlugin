@@ -47,6 +47,7 @@ public class AppSettingsConfigurable implements Configurable {
         settings.isDemo = mySettingsComponent.getDemoSelected();
 
         if (mySettingsComponent.getDemoSelected()) {
+            new SampleDialogWrapper("Применение настроек будет после перезагрузки IDE").show();
             return;
         }
 

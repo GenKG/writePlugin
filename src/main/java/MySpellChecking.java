@@ -72,17 +72,18 @@ public final class MySpellChecking extends LocalInspectionTool {
                     NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
                             .createNotification("Result code: " + elementKey + " " + map.score, NotificationType.INFORMATION)
                             .notify(psiComment.getProject());
-                }
 
-                if (map != null && !map.fragments.isEmpty()) {
-                    for (Fragment glvrdFragment : map.fragments) {
-                        final var hintText = httpapi.hints(glvrdFragment.hint_id);
-                        final var hintData = hintText.hints.get(glvrdFragment.hint_id);
-                        final var desc = String.format("GLVRD: %s", hintData.get("name").asText());
-                        final var problemInfo = new ProblemInfo(desc, glvrdFragment.start, glvrdFragment.end);
-                        problems.add(problemInfo);
+                    if (!map.fragments.isEmpty()) {
+                        for (Fragment glvrdFragment : map.fragments) {
+                            final var hintText = httpapi.hints(glvrdFragment.hint_id);
+                            final var hintData = hintText.hints.get(glvrdFragment.hint_id);
+                            final var desc = String.format("GLVRD: %s", hintData.get("name").asText());
+                            final var problemInfo = new ProblemInfo(desc, glvrdFragment.start, glvrdFragment.end);
+                            problems.add(problemInfo);
+                        }
                     }
                 }
+
                 hashMapCommentText.put(elementKey, problems);
 
                 return problems;
@@ -103,7 +104,7 @@ public final class MySpellChecking extends LocalInspectionTool {
                         for (var fragment : map.fragments) {
                             for (var innerFragment : fragment) {
                                 final var hintData = map.hints.get(innerFragment.hint);
-                                final var desc = String.format("GLVRD: %s. %s", hintData.get("name").asText(), hintData.get("short_description").asText());
+                                final var desc = String.format("GLVRD: %s.\n%s", hintData.get("name").asText(), hintData.get("short_description").asText());
                                 final var problemInfo = new ProblemInfo(desc, innerFragment.start, innerFragment.end);
                                 problems.add(problemInfo);
                             }
@@ -120,7 +121,7 @@ public final class MySpellChecking extends LocalInspectionTool {
                 final var elementText = psiComment.getText();
                 final var elementKey = elementText.trim();
                 // cancel For SmallText
-                if (elementKey.length() < 5) {
+                if (elementKey.length() < 9) {
                     return;
                 }
 
@@ -146,7 +147,10 @@ public final class MySpellChecking extends LocalInspectionTool {
 
                 var self = this;
 
-                Task.Backgroundable backgroundable = new Task.Backgroundable(psiComment.getProject(), elementKey) {
+                Task.Backgroundable backgroundable = new Task.Backgroundable(psiComment.getProject(), elementKey, false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+                    public void onSuccess() {
+                    }
+
                     @Override
                     public void run(@NotNull ProgressIndicator indicator) {
                         try {
@@ -161,11 +165,10 @@ public final class MySpellChecking extends LocalInspectionTool {
                                 }
                                 if (indicator.isRunning()) {
                                     indicator.stop();
-                                    indicator.notify();
                                 }
                             };
 
-                            ApplicationManager.getApplication().invokeLater(onEnd, ModalityState.NON_MODAL);
+                            ApplicationManager.getApplication().invokeLater(onEnd, ModalityState.defaultModalityState());
                         } catch (Exception e) {
                             e.printStackTrace();
                             NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
