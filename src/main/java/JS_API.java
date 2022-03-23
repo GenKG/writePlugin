@@ -6,7 +6,7 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
-public class JSAPI extends GLVRD_API {
+public class JS_API extends GLVRD_API {
     protected static final HashMap<String, GlvrdJSResponse> hashMapText = new HashMap<>();
 
     class RequestBuilder {

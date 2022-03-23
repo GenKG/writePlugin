@@ -157,3 +157,9 @@ class FragmentInJS {
     @JsonProperty("hint")
     public String hint;
 }
+
+interface GlvrdResponsable {
+    String getStatus();
+
+    String getMessage();
+}

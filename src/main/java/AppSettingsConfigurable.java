@@ -52,9 +52,9 @@ public class AppSettingsConfigurable implements Configurable {
         }
 
         final var apiKey = mySettingsComponent.getUserNameText();
-        HTTPAPI httpapi = new HTTPAPI(apiKey);
+        HTTP_API httpAPI = new HTTP_API(apiKey);
         try {
-            var glvrdStatus = httpapi.status();
+            var glvrdStatus = httpAPI.status();
             if (glvrdStatus.period_underlimit) {
                 new SampleDialogWrapper("Аккаунт активен. Применение настроек будет после перезагрузки IDE").show();
             } else {

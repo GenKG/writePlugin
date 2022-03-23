@@ -10,18 +10,12 @@ import java.util.HashMap;
 import org.apache.http.HttpStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-interface GlvrdResponsable {
-    String getStatus();
-
-    String getMessage();
-}
-
-public class HTTPAPI extends GLVRD_API {
+public class HTTP_API extends GLVRD_API {
     protected String apiKey;
     protected static final HashMap<String, GlvrdHints> hashMapHints = new HashMap<>();
     protected static final HashMap<String, GlvrdHTTPResponse> hashMapText = new HashMap<>();
 
-    public HTTPAPI(String apiKey) {
+    public HTTP_API(String apiKey) {
         this.apiKey = apiKey;
     }
 

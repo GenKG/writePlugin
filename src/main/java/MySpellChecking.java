@@ -18,8 +18,8 @@ import org.jetbrains.annotations.Nullable;
 
 public final class MySpellChecking extends LocalInspectionTool {
     private static boolean isDemo;
-    private static JSAPI jsapi;
-    private static HTTPAPI httpapi;
+    private static JS_API jsAPI;
+    private static HTTP_API httpAPI;
     private static Map<String, ArrayList<ProblemInfo>> hashMapCommentText;
 
     MySpellChecking() {
@@ -29,10 +29,10 @@ public final class MySpellChecking extends LocalInspectionTool {
         }
         hashMapCommentText = state.hashMapCommentText;
         if (state.isDemo) {
-            jsapi = new JSAPI();
+            jsAPI = new JS_API();
             isDemo = true;
         } else {
-            httpapi = new HTTPAPI(state.glvrdAPIKey);
+            httpAPI = new HTTP_API(state.glvrdAPIKey);
             isDemo = false;
         }
     }
@@ -66,7 +66,7 @@ public final class MySpellChecking extends LocalInspectionTool {
                 final var elementText = psiComment.getText();
                 final var elementKey = elementText.trim();
                 final var problems = new ArrayList<ProblemInfo>();
-                var map = httpapi.proofread(elementText);
+                var map = httpAPI.proofread(elementText);
 
                 if (map != null) {
                     NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
@@ -75,7 +75,7 @@ public final class MySpellChecking extends LocalInspectionTool {
 
                     if (!map.fragments.isEmpty()) {
                         for (Fragment glvrdFragment : map.fragments) {
-                            final var hintText = httpapi.hints(glvrdFragment.hint_id);
+                            final var hintText = httpAPI.hints(glvrdFragment.hint_id);
                             final var hintData = hintText.hints.get(glvrdFragment.hint_id);
                             final var desc = String.format("GLVRD: %s", hintData.get("name").asText());
                             final var problemInfo = new ProblemInfo(desc, glvrdFragment.start, glvrdFragment.end);
@@ -93,7 +93,7 @@ public final class MySpellChecking extends LocalInspectionTool {
                 final var elementText = psiComment.getText();
                 final var elementKey = elementText.trim();
                 final var problems = new ArrayList<ProblemInfo>();
-                var map = jsapi.proofread(elementText);
+                var map = jsAPI.proofread(elementText);
 
                 if (map != null) {
                     NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
