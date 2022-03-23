@@ -1,5 +1,3 @@
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.httpclient.HttpStatus;
 
@@ -7,69 +5,6 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.List;
-
-class GlvrdJSResponse implements GlvrdResponsable {
-    @JsonProperty("status")
-    public String status;
-
-    @JsonProperty("code")
-    public String code;
-
-    @JsonProperty("name")
-    public String name;
-
-    @JsonProperty("message")
-    public String message;
-
-    @JsonProperty("score")
-    public String score;
-
-    @JsonProperty("fragments")
-    public List<List<FragmentInJS>> fragments;
-
-    public String getStatus() {
-        return this.status;
-    }
-
-    public String getMessage() {
-        return this.message;
-    }
-
-    @JsonProperty("hints")
-    public JsonNode hints;
-
-    @JsonProperty("tabs")
-    public List<Tab> tabs;
-
-    @JsonProperty("stylesCss")
-    public String stylesCss;
-}
-
-class Tab {
-    @JsonProperty("code")
-    public String code;
-
-    @JsonProperty("name")
-    public String name;
-
-    @JsonProperty("textColor")
-    public String textColor;
-
-    @JsonProperty("lineColor")
-    public String lineColor;
-}
-
-class FragmentInJS {
-    @JsonProperty("start")
-    public int start;
-
-    @JsonProperty("end")
-    public int end;
-
-    @JsonProperty("hint")
-    public String hint;
-}
 
 public class JSAPI extends GLVRD_API {
     protected static final HashMap<String, GlvrdJSResponse> hashMapText = new HashMap<>();
