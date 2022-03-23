@@ -50,6 +50,12 @@ public final class MySpellChecking extends LocalInspectionTool {
         return super.isSuppressedFor(element);
     }
 
+    private boolean isCyrillicText (String text) {
+        return text.chars()
+                    .mapToObj(Character.UnicodeBlock::of)
+                    .anyMatch(b -> b.equals(Character.UnicodeBlock.CYRILLIC));
+    }
+
     @Override
     @NotNull
     public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, final boolean isOnTheFly, final LocalInspectionToolSession session) {
@@ -120,11 +126,18 @@ public final class MySpellChecking extends LocalInspectionTool {
             public void visitComment(@NotNull final PsiComment psiComment) {
                 final var elementText = psiComment.getText();
                 final var elementKey = elementText.trim();
+                final var self = this;
                 // cancel For SmallText
                 if (elementKey.length() < 9) {
                     return;
                 }
-
+                // only russian text
+                if (!isCyrillicText(elementKey)) {
+                    return;
+                }
+                if (indicator.isRunning()) {
+                    return;
+                }
                 // забираем объекты из кэша
                 if (hashMapCommentText.containsKey(elementKey)) {
                     final var problems = hashMapCommentText.get(elementKey);
@@ -140,12 +153,6 @@ public final class MySpellChecking extends LocalInspectionTool {
                     }
                     return;
                 }
-
-                if (indicator.isRunning()) {
-                    return;
-                }
-
-                var self = this;
 
                 Task.Backgroundable backgroundable = new Task.Backgroundable(psiComment.getProject(), elementKey, false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
                     public void onSuccess() {
