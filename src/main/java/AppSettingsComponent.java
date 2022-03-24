@@ -13,6 +13,7 @@ public class AppSettingsComponent {
     private final JPanel myMainPanel;
     private final JBTextField glvrdKeyText = new JBTextField();
     private final JButton glvrdAPILink = new BrowserLink("glvrd.ru", "https://glvrd.ru/api/");
+    private final JButton bitcoinLabel = new BrowserLink("bitcoin:bc1qejh37h2epmkrs0vmrv480fc27e0z4arkncevcp");
     private final JCheckBox demoCheckbox = new JCheckBox();
 
     public AppSettingsComponent() {
@@ -21,6 +22,7 @@ public class AppSettingsComponent {
                 .addLabeledComponent(new JBLabel("Ключ для запросов: "), glvrdKeyText, 1, false)
                 .addLabeledComponent(new JBLabel("Powered by"), glvrdAPILink, 2, false)
                 .addComponentFillVertically(new JPanel(), 0)
+                .addLabeledComponent(new JBLabel("🍺 Поддержи разработку! Отправь BTC на кошелк: "), bitcoinLabel)
                 .getPanel();
     }
 
