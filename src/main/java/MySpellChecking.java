@@ -17,11 +17,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class MySpellChecking extends LocalInspectionTool {
-    private static boolean isDemo;
+    private static boolean isDemo; // todo использовать функционал демо по-умолчанию
     private static boolean apiEnabled = false;
     private static JS_API jsAPI;
     private static HTTP_API httpAPI;
     private static Map<String, ArrayList<ProblemInfo>> hashMapCommentText;
+    private String balloonHint = "";
 
     MySpellChecking() {
         AppSettingsState state = AppSettingsState.getInstance();
@@ -34,16 +35,20 @@ public final class MySpellChecking extends LocalInspectionTool {
         if (state.isDemo) {
             jsAPI = new JS_API();
             apiEnabled = true;
-        } else if (state.glvrdAPIKey.length() > 0) {
+            balloonHint = "Внимание! Используется Демо режим";
+        } else if (state.glvrdAPIKey.length() == 0) {
+            balloonHint = "Внимание! Ключ лицензии не установлен";
+        } else {
             httpAPI = new HTTP_API(state.glvrdAPIKey);
             try {
                 var glvrdStatus = httpAPI.status();
                 if (glvrdStatus.period_underlimit) {
                     apiEnabled = true;
                 } else {
-                    // todo сообщить что http api недоступно
+                    balloonHint = "Внимание! HTTP API недоступно";
                 }
             } catch (Exception e) {
+                balloonHint = "Внимание! HTTP API недоступно";
                 e.printStackTrace();
             }
         }
@@ -62,10 +67,24 @@ public final class MySpellChecking extends LocalInspectionTool {
         return super.isSuppressedFor(element);
     }
 
-    private boolean isCyrillicText (String text) {
+    private boolean isCyrillicText(String text) {
         return text.chars()
-                    .mapToObj(Character.UnicodeBlock::of)
-                    .anyMatch(b -> b.equals(Character.UnicodeBlock.CYRILLIC));
+                .mapToObj(Character.UnicodeBlock::of)
+                .anyMatch(b -> b.equals(Character.UnicodeBlock.CYRILLIC));
+    }
+
+    @Override
+    public void inspectionStarted(@NotNull LocalInspectionToolSession session, boolean isOnTheFly) {
+        if (balloonHint.length() != 0) {
+            NotificationGroupManager.getInstance().getNotificationGroup("License Group")
+                    .createNotification(balloonHint, NotificationType.WARNING)
+                    .notify(session.getFile().getProject());
+            balloonHint = "";
+        }
+    }
+
+    @Override
+    public void inspectionFinished(@NotNull LocalInspectionToolSession session, @NotNull ProblemsHolder problemsHolder) {
     }
 
     @Override

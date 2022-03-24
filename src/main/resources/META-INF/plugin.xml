@@ -10,7 +10,8 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <notificationGroup id="Custom Notification Group" displayType="NONE" key="notification.group.name"/>
+        <notificationGroup id="Custom Notification Group" displayType="NONE" key="notification.group.name" isLogByDefault="true"/>
+        <notificationGroup id="License Group" displayType="BALLOON" key="notification.group.license" isLogByDefault="false"/>
         <localInspection shortName="MYYYYSpellCheckingInspection" bundle="messages.SpellCheckerBundle"
                          key="spellchecking.inspection.name" groupKey="proofread" enabledByDefault="true"
                          level="TYPO"
