@@ -34,7 +34,7 @@ public class AppSettingsConfigurable implements Configurable {
     @Override
     public boolean isModified() {
         final var settings = AppSettingsState.getInstance();
-        final var modified = !mySettingsComponent.getUserNameText().equals(settings.glvrdAPIKey) ||
+        final var modified = !mySettingsComponent.getHTTPAPIText().equals(settings.glvrdAPIKey) ||
                 !mySettingsComponent.getDemoSelected().equals(settings.isDemo);
 
         return modified;
@@ -51,7 +51,7 @@ public class AppSettingsConfigurable implements Configurable {
             return;
         }
 
-        final var apiKey = mySettingsComponent.getUserNameText();
+        final var apiKey = mySettingsComponent.getHTTPAPIText();
         HTTP_API httpAPI = new HTTP_API(apiKey);
         try {
             var glvrdStatus = httpAPI.status();
@@ -69,7 +69,7 @@ public class AppSettingsConfigurable implements Configurable {
     @Override
     public void reset() {
         final var settings = AppSettingsState.getInstance();
-        mySettingsComponent.setUserNameText(settings.glvrdAPIKey);
+        mySettingsComponent.setHTTPAPIText(settings.glvrdAPIKey);
         mySettingsComponent.setDemoCheckbox(settings.isDemo);
     }
 

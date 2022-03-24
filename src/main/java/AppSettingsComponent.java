@@ -18,9 +18,10 @@ public class AppSettingsComponent {
 
     public AppSettingsComponent() {
         myMainPanel = FormBuilder.createFormBuilder()
-                .addLabeledComponent(new JBLabel("Демо режим"), demoCheckbox)
-                .addLabeledComponent(new JBLabel("Ключ для запросов: "), glvrdKeyText, 1, false)
-                .addLabeledComponent(new JBLabel("Powered by"), glvrdAPILink, 2, false)
+                .addLabeledComponent(new JBLabel("Использовать демо режим"), demoCheckbox)
+                .addSeparator()
+                .addLabeledComponent(new JBLabel("Приобрести ключ"), glvrdAPILink, 1, false)
+                .addLabeledComponent(new JBLabel("Введите ключ для активации"), glvrdKeyText, 1, false)
                 .addComponentFillVertically(new JPanel(), 0)
                 .addLabeledComponent(new JBLabel("🍺 Поддержи разработку! Отправь BTC на кошелк: "), bitcoinLabel)
                 .getPanel();
@@ -43,11 +44,11 @@ public class AppSettingsComponent {
     }
 
     @NotNull
-    public String getUserNameText() {
+    public String getHTTPAPIText() {
         return glvrdKeyText.getText();
     }
 
-    public void setUserNameText(@NotNull String newText) {
+    public void setHTTPAPIText(@NotNull String newText) {
         glvrdKeyText.setText(newText);
     }
 }
