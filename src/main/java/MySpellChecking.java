@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class MySpellChecking extends LocalInspectionTool {
     private static boolean isDemo;
+    private static boolean apiEnabled = false;
     private static JS_API jsAPI;
     private static HTTP_API httpAPI;
     private static Map<String, ArrayList<ProblemInfo>> hashMapCommentText;
@@ -28,12 +29,23 @@ public final class MySpellChecking extends LocalInspectionTool {
             state.hashMapCommentText = new HashMap<String, ArrayList<ProblemInfo>>();
         }
         hashMapCommentText = state.hashMapCommentText;
+        isDemo = state.isDemo;
+
         if (state.isDemo) {
             jsAPI = new JS_API();
-            isDemo = true;
-        } else {
+            apiEnabled = true;
+        } else if (state.glvrdAPIKey.length() > 0) {
             httpAPI = new HTTP_API(state.glvrdAPIKey);
-            isDemo = false;
+            try {
+                var glvrdStatus = httpAPI.status();
+                if (glvrdStatus.period_underlimit) {
+                    apiEnabled = true;
+                } else {
+                    // todo сообщить что http api недоступно
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -59,6 +71,9 @@ public final class MySpellChecking extends LocalInspectionTool {
     @Override
     @NotNull
     public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, final boolean isOnTheFly, final LocalInspectionToolSession session) {
+        if (!apiEnabled) {
+            return super.buildVisitor(holder, isOnTheFly, session);
+        }
         final var original = ProgressManager.getInstance().getProgressIndicator();
         if (original != null) {
             if (original.isCanceled()) {
@@ -135,6 +150,7 @@ public final class MySpellChecking extends LocalInspectionTool {
                 if (!isCyrillicText(elementKey)) {
                     return;
                 }
+                // todo тестово перенес сюда, если что-то не работает - перенести чуть ниже
                 if (indicator.isRunning()) {
                     return;
                 }
