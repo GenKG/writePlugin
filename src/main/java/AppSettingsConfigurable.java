@@ -43,17 +43,26 @@ public class AppSettingsConfigurable implements Configurable {
     public void apply() {
         final var settings = AppSettingsState.getInstance();
         final var apiKey = mySettingsComponent.getHTTPAPIText();
+        if (apiKey.length() == 0) {
+            settings.glvrdAPIKey = "";
+            new SampleDialogWrapper("Аккаунт сброшен.\nПрименение настроек будет после перезагрузки IDE").show();
+            return;
+        }
         HTTP_API httpAPI = new HTTP_API(apiKey);
         try {
             var glvrdStatus = httpAPI.status();
             if (glvrdStatus.period_underlimit) {
-                new SampleDialogWrapper("Аккаунт активен. Применение настроек будет после перезагрузки IDE").show();
+                new SampleDialogWrapper("Аккаунт активен.\nПрименение настроек будет после перезагрузки IDE").show();
             } else {
-                new SampleDialogWrapper("Исчерпан лимит запросов. Применение настроек будет после перезагрузки IDE").show();
+                new SampleDialogWrapper("Исчерпан лимит запросов.\nПрименение настроек будет после перезагрузки IDE").show();
             }
             settings.glvrdAPIKey = apiKey;
         } catch (Exception e) {
-            new SampleDialogWrapper(e.getMessage()).show();
+            String str = "API Error";
+            if (e.getMessage().length() > 0) {
+                str += ": " + e.getMessage();
+            }
+            new SampleDialogWrapper(str).show();
         }
     }
 
