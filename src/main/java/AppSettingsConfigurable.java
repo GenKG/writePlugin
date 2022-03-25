@@ -34,8 +34,7 @@ public class AppSettingsConfigurable implements Configurable {
     @Override
     public boolean isModified() {
         final var settings = AppSettingsState.getInstance();
-        final var modified = !mySettingsComponent.getHTTPAPIText().equals(settings.glvrdAPIKey) ||
-                !mySettingsComponent.getDemoSelected().equals(settings.isDemo);
+        final var modified = !mySettingsComponent.getHTTPAPIText().equals(settings.glvrdAPIKey);
 
         return modified;
     }
@@ -43,14 +42,6 @@ public class AppSettingsConfigurable implements Configurable {
     @Override
     public void apply() {
         final var settings = AppSettingsState.getInstance();
-
-        settings.isDemo = mySettingsComponent.getDemoSelected();
-
-        if (mySettingsComponent.getDemoSelected()) {
-            new SampleDialogWrapper("Применение настроек будет после перезагрузки IDE").show();
-            return;
-        }
-
         final var apiKey = mySettingsComponent.getHTTPAPIText();
         HTTP_API httpAPI = new HTTP_API(apiKey);
         try {
@@ -70,7 +61,6 @@ public class AppSettingsConfigurable implements Configurable {
     public void reset() {
         final var settings = AppSettingsState.getInstance();
         mySettingsComponent.setHTTPAPIText(settings.glvrdAPIKey);
-        mySettingsComponent.setDemoCheckbox(settings.isDemo);
     }
 
     @Override
