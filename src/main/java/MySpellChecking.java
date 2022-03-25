@@ -94,7 +94,7 @@ public final class MySpellChecking extends LocalInspectionTool {
 
         if (map != null) {
             NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
-                    .createNotification("Result code: " + elementKey + " " + map.score, NotificationType.INFORMATION)
+                    .createNotification("Качество: '" + elementKey + "' = " + map.score, NotificationType.INFORMATION)
                     .notify(psiComment.getProject());
 
             if (!map.fragments.isEmpty()) {
@@ -119,10 +119,6 @@ public final class MySpellChecking extends LocalInspectionTool {
         var map = jsAPI.proofread(elementText);
 
         if (map != null) {
-            NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
-                    .createNotification("Result code: " + elementKey + " " + map.score, NotificationType.INFORMATION)
-                    .notify(psiComment.getProject());
-
             if (!map.fragments.isEmpty()) {
                 for (var fragment : map.fragments) {
                     for (var innerFragment : fragment) {

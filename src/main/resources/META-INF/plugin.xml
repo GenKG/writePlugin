@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>ru.baskovsky.commentlint</id>
     <name>Comment Lint</name>
-    <vendor email="safon0306@gmail.com" url="https://github.com/GenKG/writePlugin">Comment Lint</vendor>
+    <vendor email="safon0306@gmail.com" url="https://github.com/qertis/comment-lint">Comment Lint</vendor>
 
     <description>Плагин позволяет анализировать лексически текст и предлагать варианты его улучшения</description>
 
