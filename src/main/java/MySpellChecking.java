@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.httpclient.HttpException;
 import com.intellij.codeInspection.*;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
@@ -205,10 +206,17 @@ public final class MySpellChecking extends LocalInspectionTool {
                             };
 
                             ApplicationManager.getApplication().invokeLater(onEnd, ModalityState.defaultModalityState());
+                        } catch (HttpException e) {
+                            apiEnabled = false;
+                            NotificationGroupManager.getInstance().getNotificationGroup("License Group")
+                                    .createNotification(e.getMessage(), NotificationType.ERROR)
+                                    .setImportant(true)
+                                    .setTitle("Внимание!")
+                                    .notify(psiComment.getProject());
                         } catch (Exception e) {
                             e.printStackTrace();
                             NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
-                                    .createNotification(e.toString(), NotificationType.INFORMATION)
+                                    .createNotification("Comment Lint: " + e.getMessage(), NotificationType.ERROR)
                                     .notify(psiComment.getProject());
                         }
                     }

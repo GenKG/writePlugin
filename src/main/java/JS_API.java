@@ -1,4 +1,5 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 
 import java.io.*;
@@ -43,8 +44,13 @@ public class JS_API extends GLVRD_API {
         public String request(String data, HttpURLConnection con) throws Exception {
             byte[] out = data.getBytes(StandardCharsets.UTF_8);
             con.setRequestProperty("Content-Length", Integer.toString(out.length));
-            OutputStream stream = con.getOutputStream();
-            stream.write(out);
+            OutputStream stream;
+            try {
+                stream = con.getOutputStream();
+                stream.write(out);
+            } catch (Exception e) {
+                throw new HttpException("Сеть недоступна");
+            }
 
             switch (con.getResponseCode()) {
                 case 429:
