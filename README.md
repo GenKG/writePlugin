@@ -1,10 +1,21 @@
 # Comment Lint
 
-## Поддержка
-Продукты IntelliJ 2021 года и старше
+## Поддерживаемые продукты
+- IntelliJ IDEA — 2021.3.2 и выше
+- PyCharm — 2021.3.1 и выше
+- GoLand — 2021.3.2 и выше
+- WebStorm — 2021.3.1 и выше
+- AppCode — 2021.3.1 и выше
+- DataSpell — 2021.3.1 и выше
+- Rider — 2021.3.2 и выше
+- Android Studio — build 213.6461 и выше
+- CLion — 2021.3.1 и выше
+- PhpStorm — 2021.3.1 и выше
+- DataGrip — 2021.3.2 и выше
+- RubyMine — 2021.3.1 и выше
 
-## Демо
+## Демонстрация
 ![ezgif com-gif-maker](https://user-images.githubusercontent.com/3893228/154930280-c3617a78-ce01-4be3-919e-b053a4944558.gif)
 
 ## Лицензия
-MIT licensed
+MIT
