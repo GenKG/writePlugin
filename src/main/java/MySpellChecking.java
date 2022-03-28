@@ -148,11 +148,14 @@ public final class MySpellChecking extends LocalInspectionTool {
                 return super.buildVisitor(holder, isOnTheFly, session);
             }
         }
-        final var indicator = new EmptyProgressIndicator();
+        final var indicator = new EmptyProgressIndicator(ModalityState.NON_MODAL);
 
         return new PsiElementVisitor() {
             @Override
             public void visitComment(@NotNull final PsiComment psiComment) {
+                if (indicator.isRunning()) {
+                    return;
+                }
                 final var elementText = psiComment.getText();
                 final var elementKey = elementText.trim();
                 final var self = this;
@@ -162,10 +165,6 @@ public final class MySpellChecking extends LocalInspectionTool {
                 }
                 // only russian text
                 if (!isCyrillicText(elementKey)) {
-                    return;
-                }
-                // todo тестово перенес сюда, если что-то не работает - перенести чуть ниже
-                if (indicator.isRunning()) {
                     return;
                 }
                 // забираем объекты из кэша
@@ -185,21 +184,20 @@ public final class MySpellChecking extends LocalInspectionTool {
                 }
 
                 Task.Backgroundable backgroundable = new Task.Backgroundable(psiComment.getProject(), elementKey, false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+                    ArrayList<ProblemInfo> problems;
                     public void onSuccess() {
+                        for (var problem : problems) {
+                            final var textRange = new TextRange(problem.fragmentStart, problem.fragmentEnd);
+                            holder.registerProblem(psiComment, textRange, problem.descriptionTemplate, LocalQuickFix.EMPTY_ARRAY);
+                        }
                     }
 
                     @Override
                     public void run(@NotNull ProgressIndicator indicator) {
                         try {
-                            var problems = (jsAPI != null) ? jsCheck(psiComment) : httpCheck(psiComment);
+                            this.problems = (jsAPI != null) ? jsCheck(psiComment) : httpCheck(psiComment);
 
                             Runnable onEnd = () -> {
-                                for (var problem : problems) {
-                                    final var textRange = new TextRange(problem.fragmentStart, problem.fragmentEnd);
-
-                                    // todo почему-то не происходит обновления, требуя переход на новую строку
-                                    holder.registerProblem(psiComment, textRange, problem.descriptionTemplate, LocalQuickFix.EMPTY_ARRAY);
-                                }
                                 if (indicator.isRunning()) {
                                     indicator.stop();
                                 }
