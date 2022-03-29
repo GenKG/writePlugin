@@ -21,7 +21,7 @@ intellij {
 }
 patchPluginXml {
     changeNotes = """
-      Добавлено использование сервиса <em>Главред</em>.<br>
+      Using <em>GLVRD</em> API.<br>
     """
 }
 test {

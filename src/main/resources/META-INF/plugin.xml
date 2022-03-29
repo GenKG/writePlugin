@@ -2,8 +2,7 @@
     <id>ru.baskovsky.commentlint</id>
     <name>Comment Lint</name>
     <vendor email="safon0306@gmail.com" url="https://github.com/qertis/comment-lint">Comment Lint</vendor>
-
-    <description>Плагин позволяет анализировать лексически текст и предлагать варианты его улучшения</description>
+    <description>Analysis of comments and options for improving the text.</description>
 
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
          on how to target different products -->
@@ -23,7 +22,4 @@
                                  displayName="Comment Lint"/>
     </extensions>
 
-    <actions>
-
-    </actions>
 </idea-plugin>
