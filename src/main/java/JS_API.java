@@ -1,6 +1,4 @@
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpStatus;
 
 import java.io.*;
 import java.net.*;
@@ -10,20 +8,9 @@ import java.util.HashMap;
 public class JS_API extends GLVRD_API {
     protected static final HashMap<String, GlvrdJSResponse> hashMapText = new HashMap<>();
 
-    class RequestBuilder {
-        private String url;
-
+    class RequestBuilder extends RequestHelper {
         RequestBuilder(final String url) {
             this.url = url;
-        }
-
-        public <T extends GlvrdResponsable> T responseParser(String response, Class<T> tClass) throws Exception {
-            final ObjectMapper mapper = new ObjectMapper();
-            T map = mapper.readValue(response, tClass);
-            if (!map.getStatus().equals("ok")) {
-                throw new Exception(map.getMessage());
-            }
-            return map;
         }
 
         public HttpURLConnection createConnectionPost() throws Exception {
@@ -52,24 +39,7 @@ public class JS_API extends GLVRD_API {
                 throw new HttpException("Сеть недоступна");
             }
 
-            switch (con.getResponseCode()) {
-                case 429:
-                    // todo надо слать повторный запрос спустя определенное время
-                    break;
-
-                case HttpStatus.SC_OK:
-                case HttpStatus.SC_CREATED:
-                    var br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                    var sb = new StringBuilder();
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        sb.append(line).append("\n");
-                    }
-                    br.close();
-
-                    return sb.toString();
-            }
-            throw new Exception(con.getResponseCode() + " " + con.getResponseMessage());
+            return this.getData(con);
         }
     }
 

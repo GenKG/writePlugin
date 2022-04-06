@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'ru.baskovsky.commentlint'
-version '1.1'
+version '1.2'
 
 repositories {
     mavenCentral()
@@ -21,7 +21,8 @@ intellij {
 }
 patchPluginXml {
     changeNotes = """
-      Using <em>GLVRD API</em>.<br>
+        Code reformat.<br>
+        Using <em>GLVRD API</em>.
     """
 }
 test {

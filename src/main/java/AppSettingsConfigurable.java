@@ -27,7 +27,9 @@ public class AppSettingsConfigurable implements Configurable {
     @Nullable
     @Override
     public JComponent createComponent() {
-        mySettingsComponent = new AppSettingsComponent();
+        if (mySettingsComponent == null) {
+            mySettingsComponent = new AppSettingsComponent();
+        }
         return mySettingsComponent.getPanel();
     }
 
@@ -50,7 +52,7 @@ public class AppSettingsConfigurable implements Configurable {
         }
         HTTP_API httpAPI = new HTTP_API(apiKey);
         try {
-            var glvrdStatus = httpAPI.status();
+            final var glvrdStatus = httpAPI.status();
             if (glvrdStatus.period_underlimit) {
                 new SampleDialogWrapper("Аккаунт активен.\nПрименение настроек будет после перезагрузки IDE").show();
             } else {

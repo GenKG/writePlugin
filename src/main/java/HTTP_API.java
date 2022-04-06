@@ -1,14 +1,9 @@
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-
-import org.apache.http.HttpStatus;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class HTTP_API extends GLVRD_API {
     protected String apiKey;
@@ -19,20 +14,9 @@ public class HTTP_API extends GLVRD_API {
         this.apiKey = apiKey;
     }
 
-    class RequestBuilder {
-        private String url;
-
+    class RequestBuilder extends RequestHelper {
         RequestBuilder(final String url) {
             this.url = url;
-        }
-
-        public <T extends GlvrdResponsable> T responseParser(String response, Class<T> tClass) throws Exception {
-            final ObjectMapper mapper = new ObjectMapper();
-            T map = mapper.readValue(response, tClass);
-            if (!map.getStatus().equals("ok")) {
-                throw new Exception(map.getMessage());
-            }
-            return map;
         }
 
         public HttpURLConnection createConnectionPost() throws Exception {
@@ -57,31 +41,14 @@ public class HTTP_API extends GLVRD_API {
             return con;
         }
 
-        public String request(String urlParameters, HttpURLConnection con) throws Exception {
+        public String request(String urlParameters, HttpURLConnection con) throws Exception  {
             if (con.getDoOutput()) {
                 final var writer = new OutputStreamWriter(con.getOutputStream());
                 writer.write(urlParameters);
                 writer.close();
             }
 
-            switch (con.getResponseCode()) {
-                case 429:
-                    // todo надо слать повторный запрос спустя определенное время
-                    break;
-
-                case HttpStatus.SC_OK:
-                case HttpStatus.SC_CREATED:
-                    var br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                    var sb = new StringBuilder();
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        sb.append(line).append("\n");
-                    }
-                    br.close();
-
-                    return sb.toString();
-            }
-            throw new Exception(con.getResponseCode() + " " + con.getResponseMessage());
+            return this.getData(con);
         }
     }
 

@@ -14,6 +14,7 @@ import com.intellij.psi.*;
 import com.intellij.codeInspection.LocalInspectionToolSession;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.impl.source.resolve.FileContextUtil;
+import org.apache.http.client.HttpResponseException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +43,7 @@ public final class MySpellChecking extends LocalInspectionTool {
                     apiEnabled = true;
                 } else {
                     httpAPI = null;
-                    balloonHint = "Превышено число исползования ключа.\nHTTP API недоступно";
+                    balloonHint = "Превышено число использования ключа.\nHTTP API недоступно";
                 }
             } catch (Exception e) {
                 balloonHint = "Comment Lint: HTTP API недоступно.";
@@ -167,7 +168,7 @@ public final class MySpellChecking extends LocalInspectionTool {
                 if (!isCyrillicText(elementKey)) {
                     return;
                 }
-                // забираем объекты из кэша
+                // cashing
                 if (hashMapCommentText.containsKey(elementKey)) {
                     final var problems = hashMapCommentText.get(elementKey);
                     if (problems.isEmpty()) {
@@ -211,10 +212,20 @@ public final class MySpellChecking extends LocalInspectionTool {
                                     .setImportant(true)
                                     .setTitle("Внимание!")
                                     .notify(psiComment.getProject());
+                        } catch (HttpResponseException e) {
+                            try {
+                                Thread.sleep(60 * 1000);
+                                run(indicator); // шлем повторный запрос спустя время
+                            } catch(Exception exception) {
+                                e.printStackTrace();
+                                NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
+                                    .createNotification("Comment Lint HttpResponseException: " + e.getMessage(), NotificationType.ERROR)
+                                    .notify(psiComment.getProject());
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                             NotificationGroupManager.getInstance().getNotificationGroup("Custom Notification Group")
-                                    .createNotification("Comment Lint: " + e.getMessage(), NotificationType.ERROR)
+                                    .createNotification("Comment Lint Exception: " + e.getMessage(), NotificationType.ERROR)
                                     .notify(psiComment.getProject());
                         }
                     }
