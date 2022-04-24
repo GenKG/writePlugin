@@ -14,8 +14,8 @@ public class JS_API extends GLVRD_API {
         }
 
         public HttpURLConnection createConnectionPost() throws Exception {
-            var url = new URL(apiHost + this.url);
-            var con = (HttpURLConnection) url.openConnection();
+            final var url = new URL(apiHost + this.url);
+            final var con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setUseCaches(true);
             con.setDoOutput(true);
@@ -29,7 +29,7 @@ public class JS_API extends GLVRD_API {
         }
 
         public String request(String data, HttpURLConnection con) throws Exception {
-            byte[] out = data.getBytes(StandardCharsets.UTF_8);
+            var out = data.getBytes(StandardCharsets.UTF_8);
             con.setRequestProperty("Content-Length", Integer.toString(out.length));
             OutputStream stream;
             try {

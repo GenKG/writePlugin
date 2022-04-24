@@ -28,7 +28,7 @@ public final class MySpellChecking extends LocalInspectionTool {
     MySpellChecking() {
         AppSettingsState state = AppSettingsState.getInstance();
         if (state.hashMapCommentText == null) {
-            state.hashMapCommentText = new HashMap<String, ArrayList<ProblemInfo>>();
+            state.hashMapCommentText = new HashMap<>();
         }
         hashMapCommentText = state.hashMapCommentText;
 
@@ -74,14 +74,15 @@ public final class MySpellChecking extends LocalInspectionTool {
 
     @Override
     public void inspectionStarted(@NotNull LocalInspectionToolSession session, boolean isOnTheFly) {
-        if (balloonHint.length() != 0) {
-            NotificationGroupManager.getInstance().getNotificationGroup("License Group")
-                    .createNotification(balloonHint, NotificationType.WARNING)
-                    .setImportant(true)
-                    .setTitle("Внимание!")
-                    .notify(session.getFile().getProject());
-            balloonHint = "";
+        if (balloonHint.length() == 0) {
+            return;
         }
+        NotificationGroupManager.getInstance().getNotificationGroup("License Group")
+                .createNotification(balloonHint, NotificationType.WARNING)
+                .setImportant(true)
+                .setTitle("Внимание!")
+                .notify(session.getFile().getProject());
+        balloonHint = "";
     }
 
     @Override

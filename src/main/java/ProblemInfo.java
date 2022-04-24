@@ -39,12 +39,9 @@ class ProblemInfoConverter extends Converter<Map<String, ArrayList<ProblemInfo>>
         if (value.equals("")) {
             return temp;
         }
-
         final ObjectMapper mapper = new ObjectMapper();
         try {
-            var out = mapper.readValue(value, new TypeReference<HashMap<String, ArrayList<ProblemInfo>>>() {
-            });
-            return out;
+            return mapper.readValue(value, new TypeReference<HashMap<String, ArrayList<ProblemInfo>>>() {});
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

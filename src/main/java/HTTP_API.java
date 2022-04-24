@@ -84,8 +84,7 @@ public class HTTP_API extends GLVRD_API {
         final var requestBuilder = new RequestBuilder("/v3/status");
         final var con = requestBuilder.createConnectionGet();
         final var string = requestBuilder.request("", con);
-        final var result = requestBuilder.responseParser(string, GlvrdStatus.class);
 
-        return result;
+        return requestBuilder.responseParser(string, GlvrdStatus.class);
     }
 }
