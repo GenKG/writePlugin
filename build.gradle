@@ -16,14 +16,17 @@ dependencies {
 }
 
 intellij {
-    version = '2021.3.1'
+    type = 'IU'
+    version = '2021.3'
 }
+
 patchPluginXml {
     changeNotes = """
         Code reformat.<br>
         Using <em>GLVRD API</em>.
     """
 }
+
 test {
     useJUnitPlatform()
 }
