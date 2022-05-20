@@ -17,7 +17,6 @@ dependencies {
 }
 
 intellij {
-    type = 'IU'
     version = '2021.3'
     updateSinceUntilBuild = false
 }

@@ -6,7 +6,7 @@
 
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html on how to target different products -->
     <depends>com.intellij.modules.lang</depends>
-    <idea-version since-build="193"/>
+    <idea-version since-build="211"/>
 
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup id="Custom Notification Group" displayType="NONE" key="notification.group.name" isLogByDefault="true"/>
