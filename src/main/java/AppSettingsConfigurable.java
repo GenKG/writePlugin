@@ -27,15 +27,16 @@ public class AppSettingsConfigurable implements Configurable {
     @Nullable
     @Override
     public JComponent createComponent() {
-        mySettingsComponent = new AppSettingsComponent();
+        if (mySettingsComponent == null) {
+            mySettingsComponent = new AppSettingsComponent();
+        }
         return mySettingsComponent.getPanel();
     }
 
     @Override
     public boolean isModified() {
         final var settings = AppSettingsState.getInstance();
-        final var modified = !mySettingsComponent.getUserNameText().equals(settings.glvrdAPIKey) ||
-                !mySettingsComponent.getDemoSelected().equals(settings.isDemo);
+        final var modified = !mySettingsComponent.getHTTPAPIText().equals(settings.glvrdAPIKey);
 
         return modified;
     }
@@ -43,34 +44,34 @@ public class AppSettingsConfigurable implements Configurable {
     @Override
     public void apply() {
         final var settings = AppSettingsState.getInstance();
-
-        settings.isDemo = mySettingsComponent.getDemoSelected();
-
-        if (mySettingsComponent.getDemoSelected()) {
-            new SampleDialogWrapper("Применение настроек будет после перезагрузки IDE").show();
+        final var apiKey = mySettingsComponent.getHTTPAPIText();
+        if (apiKey.length() == 0) {
+            settings.glvrdAPIKey = "";
+            new SampleDialogWrapper("Аккаунт сброшен.\nПрименение настроек будет после перезагрузки IDE").show();
             return;
         }
-
-        final var apiKey = mySettingsComponent.getUserNameText();
-        HTTPAPI httpapi = new HTTPAPI(apiKey);
+        HTTP_API httpAPI = new HTTP_API(apiKey);
         try {
-            var glvrdStatus = httpapi.status();
+            final var glvrdStatus = httpAPI.status();
             if (glvrdStatus.period_underlimit) {
-                new SampleDialogWrapper("Аккаунт активен. Применение настроек будет после перезагрузки IDE").show();
+                new SampleDialogWrapper("Аккаунт активен.\nПрименение настроек будет после перезагрузки IDE").show();
             } else {
-                new SampleDialogWrapper("Исчерпан лимит запросов. Применение настроек будет после перезагрузки IDE").show();
+                new SampleDialogWrapper("Исчерпан лимит запросов.\nПрименение настроек будет после перезагрузки IDE").show();
             }
             settings.glvrdAPIKey = apiKey;
         } catch (Exception e) {
-            new SampleDialogWrapper(e.getMessage()).show();
+            String str = "API Error";
+            if (e.getMessage().length() > 0) {
+                str += ": " + e.getMessage();
+            }
+            new SampleDialogWrapper(str).show();
         }
     }
 
     @Override
     public void reset() {
         final var settings = AppSettingsState.getInstance();
-        mySettingsComponent.setUserNameText(settings.glvrdAPIKey);
-        mySettingsComponent.setDemoCheckbox(settings.isDemo);
+        mySettingsComponent.setHTTPAPIText(settings.glvrdAPIKey);
     }
 
     @Override

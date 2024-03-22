@@ -1,28 +1,25 @@
 <idea-plugin>
     <id>ru.baskovsky.commentlint</id>
     <name>Comment Lint</name>
-    <vendor email="safon0306@gmail.com" url="https://github.com/GenKG/writePlugin">Comment Lint</vendor>
+    <vendor email="safon0306@gmail.com" url="https://github.com/qertis/comment-lint">Comment Lint</vendor>
+    <description>Analysis of comments and options for improving the text.</description>
 
-    <description>Плагин позволяет анализировать лексически текст и предлагать варианты его улучшения</description>
-
-    <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
-         on how to target different products -->
-    <depends>com.intellij.modules.platform</depends>
+    <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html on how to target different products -->
+    <depends>com.intellij.modules.lang</depends>
+    <idea-version since-build="211"/>
 
     <extensions defaultExtensionNs="com.intellij">
-        <notificationGroup id="Custom Notification Group" displayType="NONE" key="notification.group.name"/>
+        <notificationGroup id="Custom Notification Group" displayType="NONE" key="notification.group.name" isLogByDefault="true"/>
+        <notificationGroup id="License Group" displayType="BALLOON" key="notification.group.license" isLogByDefault="false"/>
         <localInspection shortName="MYYYYSpellCheckingInspection" bundle="messages.SpellCheckerBundle"
-                         key="spellchecking.inspection.name" groupKey="proofread" enabledByDefault="true"
-                         level="TYPO"
-                         runForWholeFile="false"
-                         implementationClass="MySpellChecking"/>
+            key="spellchecking.inspection.name" groupKey="proofread" enabledByDefault="true"
+            level="TYPO"
+            runForWholeFile="false"
+            implementationClass="MySpellChecking"/>
         <applicationService serviceImplementation="AppSettingsState"/>
         <applicationConfigurable parentId="tools" instance="AppSettingsConfigurable"
-                                 id="org.intellij.sdk.settings.AppSettingsConfigurable"
-                                 displayName="Comment Lint"/>
+            id="org.intellij.sdk.settings.AppSettingsConfigurable"
+            displayName="Comment Lint"/>
     </extensions>
 
-    <actions>
-
-    </actions>
 </idea-plugin>

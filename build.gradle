@@ -1,10 +1,11 @@
 plugins {
-    id 'org.jetbrains.intellij' version '1.3.0'
+    id 'org.jetbrains.intellij' version '1.4.0'
     id 'java'
 }
 
+apply plugin: 'org.jetbrains.intellij'
 group 'ru.baskovsky.commentlint'
-version '1.0'
+version '1.4'
 
 repositories {
     mavenCentral()
@@ -15,15 +16,18 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }
 
-// See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version = '2021.3.1'
+    version = '2021.3'
+    updateSinceUntilBuild = false
 }
+
 patchPluginXml {
     changeNotes = """
-      Добавлено использование сервиса <em>Главред</em>.<br>
+        Code reformat.<br>
+        Using <em>GLVRD API</em>.
     """
 }
+
 test {
     useJUnitPlatform()
 }
